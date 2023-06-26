@@ -1,0 +1,56 @@
+---
+title: "Whole Game Project"
+author: "Siddharth Gandhi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Code}
+
+library(tidyverse)
+library(ggtext)
+library(ggthemes)
+library(styler)
+
+full_data <- read_csv("covid19_italy_province.csv")
+
+#Filter out all NA rows
+data <- drop_na(full_data)
+
+#Group by region and find total cases/region
+data <- data |> 
+  select(RegionName, TotalPositiveCases) |>
+  arrange(RegionName) |> 
+  group_by(RegionName) |> 
+  summarize(total_cases = sum(TotalPositiveCases))
+
+#Generate bar graph of all regions and cases
+plot <- data |> ggplot() +
+  geom_col(aes(y = RegionName, x = total_cases, fill = RegionName)) +
+  labs(
+    title = "*Total COVID-19 Cases in Italian Regions in 2020*",
+    x = "Total COVID-19 Cases, 2020",
+    y = "Italian Regions",
+    fill = NULL
+  ) +
+  scale_x_continuous(labels = scales::comma, breaks = seq(0, 35000000, by = 5000000)) +
+  theme_bw() +
+  theme(
+    plot.title = ggtext::element_markdown(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.key.size = unit(0.2, "cm"),
+    legend.position=c(.75,.75)
+  ) +
+  scale_color_colorblind()
+
+ggsave(filename = "covid19_italy_province_plot.png")
+
+```
